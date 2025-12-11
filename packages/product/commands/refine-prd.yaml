@@ -1,0 +1,58 @@
+metadata:
+  name: refine-prd
+  description: Refine and enhance existing PRD with stakeholder feedback and additional detail
+  version: 1.0.0
+  lastUpdated: "2025-10-13"
+  category: planning
+  output_path: ai-mesh/refine-prd.md
+  source: fortium
+
+mission:
+  summary: |
+    Refine and enhance an existing Product Requirements Document based on stakeholder
+    feedback, additional research, or identified gaps. Updates PRD while maintaining
+    version history and traceability.
+
+workflow:
+  phases:
+    - name: PRD Review
+      order: 1
+      steps:
+        - order: 1
+          title: Current PRD Analysis
+          description: Review existing PRD content
+
+        - order: 2
+          title: Interview users
+          description: Interview users, clarify any ambiguity or missing detail
+
+        - order: 3
+          title: Feedback Integration
+          description: Incorporate stakeholder feedback
+
+    - name: Enhancement
+      order: 2
+      steps:
+        - order: 1
+          title: Content Refinement
+          description: Enhance clarity, detail, and completeness
+
+        - order: 2
+          title: Validation
+          description: Ensure all sections meet quality standards
+
+    - name: Output Management
+      order: 3
+      steps:
+        - order: 1
+          title: PRD Update
+          description: Update PRD with version history
+
+expectedOutput:
+  format: Refined Product Requirements Document (PRD)
+  structure:
+    - name: Updated PRD
+      description: Enhanced PRD with feedback incorporated
+
+    - name: Version History
+      description: Changelog of updates and refinements
