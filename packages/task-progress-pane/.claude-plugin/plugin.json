@@ -1,0 +1,8 @@
+{
+  "name": "task-progress-pane",
+  "version": "1.0.0",
+  "description": "Real-time task progress visualization for Claude Code TodoWrite operations",
+  "type": "plugin",
+  "hooks": "../hooks/hooks.json",
+  "commands": "../commands"
+}

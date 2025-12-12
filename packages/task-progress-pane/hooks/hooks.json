@@ -1,0 +1,15 @@
+{
+  "hooks": [
+    {
+      "matcher": {
+        "tool_name": "TodoWrite"
+      },
+      "hooks": [
+        {
+          "type": "command",
+          "command": ["node", "hooks/task-spawner.js"]
+        }
+      ]
+    }
+  ]
+}

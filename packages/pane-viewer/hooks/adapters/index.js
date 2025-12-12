@@ -1,13 +1,18 @@
 /**
  * Terminal multiplexer adapters
- * Exports all adapter classes and the detector
+ * Re-exports from @ai-mesh/multiplexer-adapters shared package
+ *
+ * This file maintains backward compatibility for existing code that imports
+ * from './adapters'. New code should import from '@ai-mesh/multiplexer-adapters'.
  */
 
-const { BaseMultiplexerAdapter } = require('./base-adapter');
-const { WeztermAdapter } = require('./wezterm-adapter');
-const { ZellijAdapter } = require('./zellij-adapter');
-const { TmuxAdapter } = require('./tmux-adapter');
-const { MultiplexerDetector } = require('./multiplexer-detector');
+const {
+  BaseMultiplexerAdapter,
+  WeztermAdapter,
+  ZellijAdapter,
+  TmuxAdapter,
+  MultiplexerDetector
+} = require('@ai-mesh/multiplexer-adapters');
 
 module.exports = {
   BaseMultiplexerAdapter,
