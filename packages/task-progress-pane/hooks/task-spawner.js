@@ -90,6 +90,19 @@ async function processUpdate(updateData) {
       currentTask: parsed.currentTask
     });
 
+    // Log task transitions for persistence
+    const sessionManager = paneManager.getSessionManager();
+    if (sessionManager && config.taskLogPersistence !== false) {
+      // Check if all tasks completed (for session summary)
+      const allCompleted = parsed.tasks.every(t =>
+        t.status === 'completed' || t.status === 'failed'
+      );
+
+      if (allCompleted && parsed.tasks.length > 0) {
+        await sessionManager.logSessionSummary(toolUseId);
+      }
+    }
+
   } catch (error) {
     console.error('[task-spawner] Process error:', error.message);
   }

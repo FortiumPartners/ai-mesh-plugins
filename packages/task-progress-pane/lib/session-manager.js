@@ -10,6 +10,7 @@ const os = require('os');
 
 const STATE_DIR = path.join(os.homedir(), '.ai-mesh-task-progress');
 const STATE_PATH = path.join(STATE_DIR, 'state.json');
+const LOGS_DIR = path.join(STATE_DIR, 'logs');
 
 /**
  * Session manager class
@@ -324,6 +325,105 @@ class SessionManager {
     this.paneId = null;
     this.signalFile = null;
   }
+
+  /**
+   * Log task completion to persistent log file
+   * @param {string} toolUseId - Session identifier
+   * @param {Object} taskData - Task completion data
+   * @returns {Promise<void>}
+   */
+  async logTaskCompletion(toolUseId, taskData) {
+    try {
+      await fs.mkdir(LOGS_DIR, { recursive: true });
+
+      const date = new Date();
+      const logFileName = `tasks-${date.toISOString().split('T')[0]}.jsonl`;
+      const logPath = path.join(LOGS_DIR, logFileName);
+
+      const logEntry = {
+        timestamp: date.toISOString(),
+        sessionId: this.deriveSessionId(toolUseId),
+        toolUseId,
+        ...taskData
+      };
+
+      // Append to JSONL file (one JSON object per line)
+      await fs.appendFile(logPath, JSON.stringify(logEntry) + '\n', { mode: 0o600 });
+    } catch (error) {
+      console.error('[session-manager] Log error:', error.message);
+    }
+  }
+
+  /**
+   * Log session summary when session completes
+   * @param {string} toolUseId - Session identifier
+   * @returns {Promise<void>}
+   */
+  async logSessionSummary(toolUseId) {
+    const session = this.getSession(toolUseId);
+    if (!session) return;
+
+    await this.logTaskCompletion(toolUseId, {
+      type: 'session_summary',
+      agentType: session.agentType,
+      startedAt: session.startedAt,
+      completedAt: new Date().toISOString(),
+      progress: session.progress,
+      taskCount: session.tasks?.length || 0,
+      completedTasks: session.progress?.completed || 0,
+      failedTasks: session.progress?.failed || 0
+    });
+  }
+
+  /**
+   * Read task logs for a date range
+   * @param {string} startDate - Start date (YYYY-MM-DD)
+   * @param {string} endDate - End date (YYYY-MM-DD), defaults to today
+   * @returns {Promise<Array>} Array of log entries
+   */
+  async readLogs(startDate, endDate = null) {
+    const logs = [];
+
+    if (!endDate) {
+      endDate = new Date().toISOString().split('T')[0];
+    }
+
+    try {
+      const files = await fs.readdir(LOGS_DIR);
+
+      for (const file of files) {
+        if (!file.startsWith('tasks-') || !file.endsWith('.jsonl')) continue;
+
+        const fileDate = file.replace('tasks-', '').replace('.jsonl', '');
+        if (fileDate >= startDate && fileDate <= endDate) {
+          const content = await fs.readFile(path.join(LOGS_DIR, file), 'utf-8');
+          const lines = content.trim().split('\n').filter(Boolean);
+
+          for (const line of lines) {
+            try {
+              logs.push(JSON.parse(line));
+            } catch (e) {
+              // Skip malformed lines
+            }
+          }
+        }
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        console.error('[session-manager] Read logs error:', error.message);
+      }
+    }
+
+    return logs;
+  }
+
+  /**
+   * Get logs directory path
+   * @returns {string}
+   */
+  getLogsDir() {
+    return LOGS_DIR;
+  }
 }
 
-module.exports = { SessionManager, STATE_DIR, STATE_PATH };
+module.exports = { SessionManager, STATE_DIR, STATE_PATH, LOGS_DIR };

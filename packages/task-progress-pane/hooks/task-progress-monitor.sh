@@ -26,6 +26,7 @@ set -euo pipefail
 STATE_FILE="${1:-}"
 SIGNAL_FILE="${2:-}"
 AUTO_CLOSE_TIMEOUT="${3:-0}"
+AUTO_COLLAPSE_THRESHOLD="${4:-5}"  # Auto-collapse completed section after N items
 
 # Validate arguments
 if [[ -z "$STATE_FILE" ]]; then
@@ -90,7 +91,7 @@ LAST_STATE_MTIME=""
 declare -a SESSION_IDS=()
 declare -i CURRENT_SESSION_IDX=0
 
-# Task data (populated from state file)
+# Task data (populated from state file - per session)
 declare -a TASKS=()
 declare -a TASK_STATUSES=()
 declare -a TASK_IDS=()
@@ -100,6 +101,19 @@ declare PROGRESS_TOTAL=0
 declare PROGRESS_PERCENT=0
 declare TOTAL_ELAPSED_MS=0
 declare CURRENT_TASK=""
+
+# Multi-session data structure
+# Each session is stored in parallel arrays
+declare -a ALL_SESSION_TASKS=()       # Pipe-delimited task contents per session
+declare -a ALL_SESSION_STATUSES=()    # Pipe-delimited task statuses per session
+declare -a ALL_SESSION_IDS=()         # Pipe-delimited task IDs per session
+declare -a SESSION_AGENT_TYPES=()     # Agent type per session
+declare -a SESSION_PROGRESS_PCT=()    # Progress percentage per session
+declare -a SESSION_CURRENT_TASK=()    # Current task per session
+
+# Task details arrays (parallel to TASKS/TASK_STATUSES/TASK_IDS)
+declare -a TASK_ERRORS=()             # Error messages for failed tasks
+declare -a TASK_ACTIVE_FORMS=()       # Active form descriptions
 
 # =============================================================================
 # SECTION 2: TERMINAL UTILITIES
@@ -166,21 +180,92 @@ read_state() {
     local content
     content=$(cat "$STATE_FILE" 2>/dev/null) || return 1
 
-    # Parse JSON using built-in tools (basic parsing)
-    # For production, consider using jq if available
+    # Parse JSON using jq if available, fallback to basic parsing
+    if command -v jq &>/dev/null; then
+        parse_state_with_jq "$content"
+    else
+        parse_state_basic "$content"
+    fi
+
+    # Load current session data into working arrays
+    load_current_session_data
+    return 0
+}
+
+# Parse state using jq (fast, accurate)
+parse_state_with_jq() {
+    local content="$1"
+
+    # Reset multi-session arrays
+    SESSION_IDS=()
+    ALL_SESSION_TASKS=()
+    ALL_SESSION_STATUSES=()
+    ALL_SESSION_IDS=()
+    SESSION_AGENT_TYPES=()
+    SESSION_PROGRESS_PCT=()
+    SESSION_CURRENT_TASK=()
+
+    # Get active session index
+    CURRENT_SESSION_IDX=$(echo "$content" | jq -r '.activeSessionIndex // 0')
+
+    # Get session count
+    local session_count
+    session_count=$(echo "$content" | jq -r '.sessions | length')
+
+    if ((session_count == 0)); then
+        return 0
+    fi
+
+    # Parse each session
+    for ((i = 0; i < session_count; i++)); do
+        local session_id agent_type current_task progress_pct
+        session_id=$(echo "$content" | jq -r ".sessions[$i].sessionId // \"session-$i\"")
+        agent_type=$(echo "$content" | jq -r ".sessions[$i].agentType // \"unknown\"")
+        current_task=$(echo "$content" | jq -r ".sessions[$i].currentTask // \"\"")
+        progress_pct=$(echo "$content" | jq -r ".sessions[$i].progress.percentage // 0")
+
+        SESSION_IDS+=("$session_id")
+        SESSION_AGENT_TYPES+=("$agent_type")
+        SESSION_CURRENT_TASK+=("$current_task")
+        SESSION_PROGRESS_PCT+=("$progress_pct")
+
+        # Get tasks for this session (pipe-delimited)
+        local tasks_content tasks_status tasks_ids tasks_errors tasks_activeforms
+        tasks_content=$(echo "$content" | jq -r ".sessions[$i].tasks[].content // \"\"" | tr '\n' '|')
+        tasks_status=$(echo "$content" | jq -r ".sessions[$i].tasks[].status // \"pending\"" | tr '\n' '|')
+        tasks_ids=$(echo "$content" | jq -r ".sessions[$i].tasks[].id // \"\"" | tr '\n' '|')
+        tasks_errors=$(echo "$content" | jq -r ".sessions[$i].tasks[].error // \"\"" | tr '\n' '|')
+        tasks_activeforms=$(echo "$content" | jq -r ".sessions[$i].tasks[].activeForm // \"\"" | tr '\n' '|')
+
+        ALL_SESSION_TASKS+=("$tasks_content")
+        ALL_SESSION_STATUSES+=("$tasks_status")
+        ALL_SESSION_IDS+=("$tasks_ids")
+
+        # Store errors and activeforms indexed by session
+        eval "SESSION_${i}_ERRORS=\"$tasks_errors\""
+        eval "SESSION_${i}_ACTIVEFORMS=\"$tasks_activeforms\""
+    done
+}
+
+# Basic state parsing (fallback)
+parse_state_basic() {
+    local content="$1"
 
     # Reset arrays
+    SESSION_IDS=()
+    ALL_SESSION_TASKS=()
+    ALL_SESSION_STATUSES=()
+    ALL_SESSION_IDS=()
+    SESSION_AGENT_TYPES=()
+    SESSION_PROGRESS_PCT=()
+    SESSION_CURRENT_TASK=()
     TASKS=()
     TASK_STATUSES=()
     TASK_IDS=()
 
-    # Extract sessions array and parse tasks
-    # This is a simplified parser - assumes well-formed JSON
-    local in_tasks=false
     local task_content=""
     local task_status=""
     local task_id=""
-    local brace_count=0
 
     while IFS= read -r line; do
         # Look for progress data
@@ -201,6 +286,12 @@ read_state() {
         fi
         if [[ "$line" =~ \"currentTask\":\ *\"([^\"]+)\" ]]; then
             CURRENT_TASK="${BASH_REMATCH[1]}"
+        fi
+        if [[ "$line" =~ \"sessionId\":\ *\"([^\"]+)\" ]]; then
+            SESSION_IDS+=("${BASH_REMATCH[1]}")
+        fi
+        if [[ "$line" =~ \"agentType\":\ *\"([^\"]+)\" ]]; then
+            SESSION_AGENT_TYPES+=("${BASH_REMATCH[1]}")
         fi
 
         # Parse individual tasks
@@ -225,7 +316,86 @@ read_state() {
         fi
     done <<< "$content"
 
-    return 0
+    # Set up single "session" for basic parsing
+    if (( ${#SESSION_IDS[@]} == 0 )); then
+        SESSION_IDS=("default")
+    fi
+}
+
+# Load current session data into working arrays
+load_current_session_data() {
+    local session_count=${#SESSION_IDS[@]}
+
+    if ((session_count == 0)); then
+        TASKS=()
+        TASK_STATUSES=()
+        TASK_IDS=()
+        TASK_ERRORS=()
+        TASK_ACTIVE_FORMS=()
+        PROGRESS_PERCENT=0
+        CURRENT_TASK=""
+        return
+    fi
+
+    # Ensure index is valid
+    if ((CURRENT_SESSION_IDX >= session_count)); then
+        CURRENT_SESSION_IDX=$((session_count - 1))
+    fi
+    if ((CURRENT_SESSION_IDX < 0)); then
+        CURRENT_SESSION_IDX=0
+    fi
+
+    # If we have multi-session data from jq parsing
+    if (( ${#ALL_SESSION_TASKS[@]} > 0 )); then
+        local tasks_str="${ALL_SESSION_TASKS[$CURRENT_SESSION_IDX]}"
+        local statuses_str="${ALL_SESSION_STATUSES[$CURRENT_SESSION_IDX]}"
+        local ids_str="${ALL_SESSION_IDS[$CURRENT_SESSION_IDX]}"
+
+        # Get errors and activeforms for this session
+        local errors_str activeforms_str
+        eval "errors_str=\"\${SESSION_${CURRENT_SESSION_IDX}_ERRORS:-}\""
+        eval "activeforms_str=\"\${SESSION_${CURRENT_SESSION_IDX}_ACTIVEFORMS:-}\""
+
+        # Convert pipe-delimited strings to arrays
+        TASKS=()
+        TASK_STATUSES=()
+        TASK_IDS=()
+        TASK_ERRORS=()
+        TASK_ACTIVE_FORMS=()
+
+        IFS='|' read -ra TASKS <<< "$tasks_str"
+        IFS='|' read -ra TASK_STATUSES <<< "$statuses_str"
+        IFS='|' read -ra TASK_IDS <<< "$ids_str"
+        IFS='|' read -ra TASK_ERRORS <<< "$errors_str"
+        IFS='|' read -ra TASK_ACTIVE_FORMS <<< "$activeforms_str"
+
+        # Remove empty trailing elements
+        while (( ${#TASKS[@]} > 0 && -z "${TASKS[-1]}" )); do
+            unset 'TASKS[-1]'
+        done
+
+        PROGRESS_PERCENT="${SESSION_PROGRESS_PCT[$CURRENT_SESSION_IDX]:-0}"
+        CURRENT_TASK="${SESSION_CURRENT_TASK[$CURRENT_SESSION_IDX]:-}"
+    fi
+
+    # Calculate progress from tasks if not set
+    local task_count=${#TASKS[@]}
+    if ((task_count > 0)); then
+        PROGRESS_TOTAL=$task_count
+        PROGRESS_COMPLETED=0
+        PROGRESS_FAILED=0
+
+        for status in "${TASK_STATUSES[@]}"; do
+            case "$status" in
+                completed) ((PROGRESS_COMPLETED++)) ;;
+                failed) ((PROGRESS_FAILED++)) ;;
+            esac
+        done
+
+        if ((PROGRESS_TOTAL > 0)); then
+            PROGRESS_PERCENT=$(( (PROGRESS_COMPLETED * 100) / PROGRESS_TOTAL ))
+        fi
+    fi
 }
 
 # Format elapsed time
@@ -248,22 +418,70 @@ format_elapsed() {
 # SECTION 4: RENDERING FUNCTIONS
 # =============================================================================
 
+# Render session indicator
+render_session_indicator() {
+    local session_count=${#SESSION_IDS[@]}
+    if ((session_count <= 1)); then
+        return
+    fi
+
+    local indicator=""
+    for ((i = 0; i < session_count; i++)); do
+        if ((i == CURRENT_SESSION_IDX)); then
+            indicator+="${BOLD}●${RESET}"
+        else
+            indicator+="${DIM}○${RESET}"
+        fi
+        if ((i < session_count - 1)); then
+            indicator+=" "
+        fi
+    done
+
+    printf " %b" "$indicator"
+}
+
+# Get current session agent type
+get_current_agent_type() {
+    local session_count=${#SESSION_AGENT_TYPES[@]}
+    if ((CURRENT_SESSION_IDX >= 0 && CURRENT_SESSION_IDX < session_count)); then
+        echo "${SESSION_AGENT_TYPES[$CURRENT_SESSION_IDX]:-unknown}"
+    else
+        echo "unknown"
+    fi
+}
+
 # Render fixed header
 render_header() {
     move_to 1 1
 
-    # Title bar
+    # Title bar with session info
+    local session_count=${#SESSION_IDS[@]}
+    local title="Task Progress"
+
+    if ((session_count > 1)); then
+        local agent_type
+        agent_type=$(get_current_agent_type)
+        title="Task Progress [$agent_type] ($((CURRENT_SESSION_IDX + 1))/$session_count)"
+    fi
+
     printf "${BOLD}${BG_BLUE}${WHITE}"
-    printf " %-$((TERM_COLS - 2))s " "Task Progress"
+    printf " %-$((TERM_COLS - 2))s " "$title"
     printf "${RESET}\n"
 
     # Progress bar
     render_progress_bar "$PROGRESS_COMPLETED" "$PROGRESS_FAILED" "$PROGRESS_TOTAL" $((TERM_COLS - 4))
 
-    # Elapsed time
+    # Session indicator + Elapsed time
     local elapsed_str
     elapsed_str=$(format_elapsed "$TOTAL_ELAPSED_MS")
-    printf " ${DIM}Elapsed: %s${RESET}\n" "$elapsed_str"
+
+    if ((session_count > 1)); then
+        printf " "
+        render_session_indicator
+        printf " ${DIM}| Elapsed: %s${RESET}\n" "$elapsed_str"
+    else
+        printf " ${DIM}Elapsed: %s${RESET}\n" "$elapsed_str"
+    fi
 
     # Current task (if any)
     if [[ -n "$CURRENT_TASK" ]]; then
@@ -412,10 +630,33 @@ render_task_list() {
 
         # If task is expanded, show additional details
         if is_task_expanded "$task_id" && ((rendered_row < BODY_HEIGHT)); then
-            move_to $((HEADER_HEIGHT + rendered_row + 1)) 1
-            clear_line
-            printf "   ${DIM}Status: %s | ID: %s${RESET}" "$status" "$task_id"
-            ((rendered_row++))
+            # Show activeForm if available
+            local active_form="${TASK_ACTIVE_FORMS[$task_idx]:-}"
+            if [[ -n "$active_form" ]]; then
+                move_to $((HEADER_HEIGHT + rendered_row + 1)) 1
+                clear_line
+                local active_truncated="${active_form:0:$((TERM_COLS - 8))}"
+                printf "   ${DIM}→ %s${RESET}" "$active_truncated"
+                ((rendered_row++))
+            fi
+
+            # Show error details for failed tasks
+            local error_msg="${TASK_ERRORS[$task_idx]:-}"
+            if [[ "$status" == "failed" && -n "$error_msg" ]] && ((rendered_row < BODY_HEIGHT)); then
+                move_to $((HEADER_HEIGHT + rendered_row + 1)) 1
+                clear_line
+                local error_truncated="${error_msg:0:$((TERM_COLS - 10))}"
+                printf "   ${RED}✗ Error: %s${RESET}" "$error_truncated"
+                ((rendered_row++))
+            fi
+
+            # Show status and ID
+            if ((rendered_row < BODY_HEIGHT)); then
+                move_to $((HEADER_HEIGHT + rendered_row + 1)) 1
+                clear_line
+                printf "   ${DIM}Status: %s | ID: %s${RESET}" "$status" "$task_id"
+                ((rendered_row++))
+            fi
         fi
 
         ((task_idx++))
@@ -450,6 +691,9 @@ render_help_bar() {
 refresh_display() {
     read_state || true
     update_terminal_size
+
+    # Auto-collapse completed section if threshold exceeded
+    check_auto_collapse
 
     save_cursor
     render_header
@@ -736,6 +980,36 @@ is_section_collapsed() {
         fi
     done
     return 1
+}
+
+# Auto-collapse completed section if threshold exceeded
+check_auto_collapse() {
+    if ((AUTO_COLLAPSE_THRESHOLD <= 0)); then
+        return
+    fi
+
+    # Count completed tasks
+    local completed_count=0
+    for status in "${TASK_STATUSES[@]}"; do
+        if [[ "$status" == "completed" ]]; then
+            ((completed_count++))
+        fi
+    done
+
+    # Auto-collapse if threshold exceeded
+    if ((completed_count > AUTO_COLLAPSE_THRESHOLD)); then
+        local already_collapsed=false
+        for s in "${COLLAPSED_SECTIONS[@]}"; do
+            if [[ "$s" == "completed" ]]; then
+                already_collapsed=true
+                break
+            fi
+        done
+
+        if [[ "$already_collapsed" == false ]]; then
+            COLLAPSED_SECTIONS+=("completed")
+        fi
+    fi
 }
 
 # Navigate to next session (Tab)
