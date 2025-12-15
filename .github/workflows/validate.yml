@@ -20,14 +20,14 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Validate marketplace.json
-        run: npx ajv validate -s schemas/marketplace-schema.json -d marketplace.json
+        run: npx ajv validate -s schemas/marketplace-schema.json -d marketplace.json -c ajv-formats
 
       - name: Validate all plugin.json files
         run: |
           for plugin in packages/*/; do
             if [ -f "$plugin.claude-plugin/plugin.json" ]; then
               echo "Validating $plugin.claude-plugin/plugin.json"
-              npx ajv validate -s schemas/plugin-schema.json -d "$plugin.claude-plugin/plugin.json"
+              npx ajv validate -s schemas/plugin-schema.json -d "$plugin.claude-plugin/plugin.json" -c ajv-formats
             fi
           done
 
