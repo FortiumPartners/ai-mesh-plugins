@@ -1,7 +1,12 @@
 {
-  "name": "task-progress-pane",
-  "version": "1.0.0",
+  "name": "ensemble-task-progress-pane",
+  "version": "5.0.0",
   "description": "Real-time task progress visualization for Claude Code TodoWrite operations",
+  "author": {
+    "name": "Fortium Partners",
+    "email": "support@fortiumpartners.com"
+  },
+  "license": "MIT",
   "type": "plugin",
   "hooks": "../hooks/hooks.json",
   "commands": "../commands"
