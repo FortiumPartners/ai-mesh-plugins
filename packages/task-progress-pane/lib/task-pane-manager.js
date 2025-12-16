@@ -7,7 +7,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
-const { MultiplexerDetector } = require('@fortium/ensemble-multiplexer-adapters');
+const { MultiplexerDetector } = require('./multiplexer');
 const { loadConfig } = require('./config-loader');
 const { SessionManager, STATE_PATH } = require('./session-manager');
 
