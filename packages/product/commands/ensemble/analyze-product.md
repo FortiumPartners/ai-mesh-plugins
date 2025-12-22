@@ -1,5 +1,5 @@
 ---
-name: analyze-product
+name: ensemble:analyze-product
 description: Analyze existing brownfield project and generate improvement roadmap
 ---
 <!-- DO NOT EDIT - Generated from analyze-product.yaml -->
@@ -47,5 +47,5 @@ improvement opportunities, and generate a comprehensive roadmap with PRD for enh
 ## Usage
 
 ```
-/analyze-product
+/ensemble:analyze-product
 ```

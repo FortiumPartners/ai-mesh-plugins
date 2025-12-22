@@ -1,5 +1,5 @@
 ---
-name: implement-trd
+name: ensemble:implement-trd
 description: Complete TRD implementation using git-town workflow with ensemble-orchestrator delegation and TDD methodology
 ---
 <!-- DO NOT EDIT - Generated from implement-trd.yaml -->
@@ -97,5 +97,5 @@ development including planning, implementation, testing, and quality gates.
 ## Usage
 
 ```
-/implement-trd
+/ensemble:implement-trd
 ```

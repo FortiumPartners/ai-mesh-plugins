@@ -1,5 +1,5 @@
 ---
-name: refine-prd
+name: ensemble:refine-prd
 description: Refine and enhance existing PRD with stakeholder feedback and additional detail
 ---
 <!-- DO NOT EDIT - Generated from refine-prd.yaml -->
@@ -56,5 +56,5 @@ Present identified gaps and ask clarifying questions:
 ## Usage
 
 ```
-/refine-prd
+/ensemble:refine-prd
 ```

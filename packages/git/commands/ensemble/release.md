@@ -1,5 +1,5 @@
 ---
-name: release
+name: ensemble:release
 description: Automated release workflow orchestration with quality gates, smoke test integration,
 and deployment coordination. Supports standard, hotfix, and rollback release types.
 
@@ -282,5 +282,5 @@ to ensure safe, reliable releases with comprehensive smoke test coverage and aut
 ## Usage
 
 ```
-/release
+/ensemble:release
 ```

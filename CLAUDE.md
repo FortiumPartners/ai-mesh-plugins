@@ -4,10 +4,24 @@
 
 ## Quick Reference
 
+### Slash Commands
+All ensemble commands use the `/ensemble:` namespace:
+```
+/ensemble:fold-prompt          # Optimize Claude environment
+/ensemble:create-prd           # Create Product Requirements Document
+/ensemble:create-trd           # Create Technical Requirements Document
+/ensemble:implement-trd        # Implement TRD with git-town workflow
+/ensemble:release              # Orchestrate release workflow
+/ensemble:playwright-test      # Run E2E tests with Playwright
+/ensemble:manager-dashboard    # Generate productivity metrics
+/ensemble:sprint-status        # Current sprint status report
+```
+
 ### Essential Commands
 ```bash
 npm test                    # Run all tests
 npm run validate            # Validate marketplace + plugins
+npm run generate            # Regenerate markdown from YAML
 npm run test:coverage       # Coverage reports
 ```
 
@@ -123,6 +137,46 @@ Specific expertise area
 - `agent-meta-engineer` - Agent ecosystem management
 - `release-agent` - Automated release orchestration
 
+## Agent Delegation Protocol
+
+### Handoff Pattern
+Agents delegate work using the Task tool with explicit agent types:
+```
+Task(subagent_type="backend-developer", prompt="Implement API endpoint...")
+Task(subagent_type="code-reviewer", prompt="Review changes in src/...")
+```
+
+### Delegation Hierarchy
+```
+ensemble-orchestrator (chief)
+├── tech-lead-orchestrator (architecture decisions)
+│   ├── backend-developer, frontend-developer
+│   └── infrastructure-developer
+├── product-management-orchestrator (requirements)
+├── qa-orchestrator (quality gates)
+│   ├── code-reviewer, test-runner
+│   └── playwright-tester
+└── infrastructure-orchestrator (deployment)
+    └── deployment-orchestrator, build-orchestrator
+```
+
+### Handoff Best Practices
+1. **Clear Context**: Include relevant file paths and requirements
+2. **Scoped Tasks**: One responsibility per delegation
+3. **Return Path**: Agents report results back to orchestrator
+4. **Error Escalation**: Unresolved issues escalate up the hierarchy
+
+### Agent Selection Guide
+| Task Type | Primary Agent | Backup |
+|-----------|---------------|--------|
+| API implementation | backend-developer | tech-lead-orchestrator |
+| UI components | frontend-developer | tech-lead-orchestrator |
+| Code quality | code-reviewer | qa-orchestrator |
+| Test failures | test-runner | deep-debugger |
+| Database changes | postgresql-specialist | backend-developer |
+| CI/CD issues | build-orchestrator | infrastructure-developer |
+| Release process | release-agent | git-workflow |
+
 ## Testing
 
 ### Frameworks
@@ -144,22 +198,52 @@ npm run test:coverage --workspace=packages/<name>
 ## Hooks System
 
 ### Available Hook Points
-- `PreToolUse` - Before tool execution
-- `PostToolUse` - After tool execution
+- `PreToolUse` - Before tool execution (can modify or block)
+- `PostToolUse` - After tool execution (can process results)
 
 ### Hook Configuration (hooks/hooks.json)
 ```json
 {
   "hooks": {
     "PreToolUse": [{
-      "matcher": "TodoWrite",
+      "matcher": "Task",
       "hooks": [{
         "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/handler.js"
+        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pane-spawner.js"
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Task",
+      "hooks": [{
+        "type": "command",
+        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pane-completion.js"
       }]
     }]
   }
 }
+```
+
+### Implemented Hooks
+
+| Plugin | Hook | Trigger | Purpose |
+|--------|------|---------|---------|
+| agent-progress-pane | PreToolUse | Task | Spawn progress pane |
+| agent-progress-pane | PostToolUse | Task | Update completion status |
+| task-progress-pane | PreToolUse | TodoWrite | Display task progress |
+
+### Hook Environment Variables
+- `CLAUDE_PLUGIN_ROOT` - Plugin installation directory
+- `TOOL_NAME` - Name of the tool being invoked
+- `TOOL_INPUT` - JSON-encoded tool parameters
+
+### Creating Custom Hooks
+```javascript
+#!/usr/bin/env node
+// hooks/my-hook.js
+const input = JSON.parse(process.env.TOOL_INPUT || '{}');
+console.log(`Tool ${process.env.TOOL_NAME} called with:`, input);
+// Return non-zero to block tool execution (PreToolUse only)
+process.exit(0);
 ```
 
 ## Configuration
@@ -232,15 +316,43 @@ npm run publish:changed
 1. Check `plugin.json` syntax: `npm run validate`
 2. Verify hooks path matches actual file location
 3. Check for missing dependencies in cached installation
+4. Reinstall: `claude plugin uninstall ensemble-full && claude plugin install ensemble-full --scope local`
 
 ### Module Not Found in Cached Plugin
 - Inline dependencies instead of using npm packages
 - Example: agent-progress-pane inlines multiplexer-adapters
+- Check `node_modules` exists in plugin directory
 
 ### Tests Failing
 - Jest/Vitest mock CommonJS `require()` differently
 - Use `vi.mock()` for ESM, `jest.mock()` for CJS
 - Real config files can interfere with test expectations
+
+### YAML Generation Errors
+```bash
+npm run generate -- --verbose  # See detailed errors
+npm run generate -- --dry-run  # Preview without writing
+```
+Common issues:
+- Schema validation: Check pattern requirements in `schemas/command-yaml-schema.json`
+- Missing required fields: `metadata.name`, `metadata.description`, `metadata.version`
+- Phase/step numbering gaps: Must be sequential starting from 1
+
+### Agent Not Found
+- Verify agent YAML exists in `packages/*/agents/`
+- Run `npm run generate` to regenerate markdown
+- Check agent name matches exactly (case-sensitive)
+
+### Hooks Not Executing
+1. Verify `hooks.json` path in `plugin.json`
+2. Check hook script is executable: `chmod +x hooks/*.js`
+3. Test hook manually: `TOOL_NAME=Task node hooks/my-hook.js`
+4. Check Claude Code logs for hook errors
+
+### Command Namespace Issues
+- Commands should use `name: ensemble:command-name` format
+- Schema pattern: `^[a-z][a-z0-9-]*(:[a-z][a-z0-9-]*)?$`
+- After changes, run `npm run generate` and reinstall plugin
 
 ## Links
 

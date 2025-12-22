@@ -1,6 +1,6 @@
 {
   "name": "ensemble-jest",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Jest testing framework integration",
   "author": {
     "name": "Fortium Partners",
@@ -16,6 +16,5 @@
     "ensemble"
   ],
   "commands": "./commands",
-  "skills": "./skills",
-  "agents": "./agents"
+  "skills": "./skills"
 }

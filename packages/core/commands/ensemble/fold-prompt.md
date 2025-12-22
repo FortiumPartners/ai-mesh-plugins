@@ -1,5 +1,5 @@
 ---
-name: fold-prompt
+name: ensemble:fold-prompt
 description: Advanced Claude environment optimization through intelligent project analysis and context management
 ---
 <!-- DO NOT EDIT - Generated from fold-prompt.yaml -->
@@ -71,5 +71,5 @@ CLAUDE.md, README.md, and agent configurations for improved Claude Code performa
 ## Usage
 
 ```
-/fold-prompt
+/ensemble:fold-prompt
 ```

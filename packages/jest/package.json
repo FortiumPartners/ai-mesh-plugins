@@ -1,6 +1,6 @@
 {
   "name": "@fortium/ensemble-jest",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Jest testing framework integration",
   "main": "lib/index.js",
   "scripts": {

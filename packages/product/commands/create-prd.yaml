@@ -1,5 +1,5 @@
 metadata:
-  name: create-prd
+  name: ensemble:create-prd
   description: Create comprehensive Product Requirements Document from product description
   version: 1.0.0
   lastUpdated: "2025-10-13"

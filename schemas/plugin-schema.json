@@ -5,8 +5,8 @@
   "properties": {
     "name": {
       "type": "string",
-      "pattern": "^ensemble-[a-z0-9-]+$",
-      "description": "Plugin name (must start with 'ensemble-')"
+      "pattern": "^ensemble(-[a-z0-9-]+)?$",
+      "description": "Plugin name ('ensemble' or 'ensemble-*')"
     },
     "version": {
       "type": "string",
@@ -48,8 +48,22 @@
       }
     },
     "agents": {
-      "type": "string",
-      "description": "Path to agents directory"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "\\.md$",
+          "description": "Path to a single agent markdown file"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\.md$"
+          },
+          "description": "Array of paths to agent markdown files"
+        }
+      ],
+      "description": "Agent definition(s) - single .md file path or array of .md file paths"
     },
     "commands": {
       "type": "string",

@@ -1,5 +1,5 @@
 ---
-name: playwright-test
+name: ensemble:playwright-test
 description: Automated E2E testing and error resolution using Playwright MCP integration
 ---
 <!-- DO NOT EDIT - Generated from playwright-test.yaml -->
@@ -51,5 +51,5 @@ debugging context for quick resolution.
 ## Usage
 
 ```
-/playwright-test
+/ensemble:playwright-test
 ```

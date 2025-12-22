@@ -1,5 +1,5 @@
 ---
-name: agent-progress-config
+name: ensemble:agent-progress-config
 description: Configure ensemble-agent-progress-pane settings
 ---
 

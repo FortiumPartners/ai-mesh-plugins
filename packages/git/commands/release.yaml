@@ -1,5 +1,5 @@
 metadata:
-  name: release
+  name: ensemble:release
   description: |
     Automated release workflow orchestration with quality gates, smoke test integration,
     and deployment coordination. Supports standard, hotfix, and rollback release types.

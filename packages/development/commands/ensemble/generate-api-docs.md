@@ -1,5 +1,5 @@
 ---
-name: generate-api-docs
+name: ensemble:generate-api-docs
 description: Generate comprehensive OpenAPI/Swagger API documentation from codebase
 ---
 <!-- DO NOT EDIT - Generated from generate-api-docs.yaml -->
@@ -41,5 +41,5 @@ specifications, endpoint descriptions, request/response examples, and error docu
 ## Usage
 
 ```
-/generate-api-docs
+/ensemble:generate-api-docs
 ```

@@ -1,5 +1,5 @@
 ---
-name: create-prd
+name: ensemble:create-prd
 description: Create comprehensive Product Requirements Document from product description
 ---
 <!-- DO NOT EDIT - Generated from create-prd.yaml -->
@@ -55,5 +55,5 @@ acceptance criteria definition, and structured requirements documentation.
 ## Usage
 
 ```
-/create-prd
+/ensemble:create-prd
 ```

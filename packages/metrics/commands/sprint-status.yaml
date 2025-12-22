@@ -1,5 +1,5 @@
 metadata:
-  name: sprint-status
+  name: ensemble:sprint-status
   description: Generate current sprint status report with task completion and blockers
   version: 1.0.0
   lastUpdated: "2025-10-13"

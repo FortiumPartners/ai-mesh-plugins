@@ -1,5 +1,5 @@
 ---
-name: task-progress-config
+name: ensemble:task-progress-config
 description: Configure ensemble-task-progress-pane settings
 ---
 

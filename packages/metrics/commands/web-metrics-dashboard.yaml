@@ -1,5 +1,5 @@
 metadata:
-  name: web-metrics-dashboard
+  name: ensemble:web-metrics-dashboard
   description: Generate web performance metrics dashboard with Core Web Vitals
   version: 1.0.0
   lastUpdated: "2025-10-13"

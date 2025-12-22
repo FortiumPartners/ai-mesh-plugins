@@ -1,5 +1,5 @@
 metadata:
-  name: create-trd
+  name: ensemble:create-trd
   description: |
     Take an existing PRD $ARGUMENTS and delegate to @tech-lead-orchestrator by the @ensemble-orchestrator
   version: 1.0.0

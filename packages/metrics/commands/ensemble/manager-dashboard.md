@@ -1,5 +1,5 @@
 ---
-name: manager-dashboard
+name: ensemble:manager-dashboard
 description: Generate real-time productivity metrics and team analytics dashboard
 ---
 <!-- DO NOT EDIT - Generated from manager-dashboard.yaml -->
@@ -50,5 +50,5 @@ and technical leads.
 ## Usage
 
 ```
-/manager-dashboard
+/ensemble:manager-dashboard
 ```

@@ -14,8 +14,8 @@
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9-]*$",
-          "description": "Command name (lowercase, hyphenated)"
+          "pattern": "^[a-z][a-z0-9-]*(:[a-z][a-z0-9-]*)?$",
+          "description": "Command name (lowercase, hyphenated, optionally namespaced with colon)"
         },
         "description": {
           "type": "string",

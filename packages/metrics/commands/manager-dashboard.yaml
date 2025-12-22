@@ -1,5 +1,5 @@
 metadata:
-  name: manager-dashboard
+  name: ensemble:manager-dashboard
   description: Generate real-time productivity metrics and team analytics dashboard
   version: 1.0.0
   lastUpdated: "2025-10-13"

@@ -1,5 +1,5 @@
 ---
-name: refine-trd
+name: ensemble:refine-trd
 description: Refine and enhance existing TRD with stakeholder feedback and additional detail
 ---
 <!-- DO NOT EDIT - Generated from refine-trd.yaml -->
@@ -47,5 +47,5 @@ version history and traceability.
 ## Usage
 
 ```
-/refine-trd
+/ensemble:refine-trd
 ```

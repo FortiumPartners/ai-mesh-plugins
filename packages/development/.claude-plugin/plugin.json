@@ -1,6 +1,6 @@
 {
   "name": "ensemble-development",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Development agents for frontend/backend implementation",
   "author": {
     "name": "Fortium Partners",
@@ -17,5 +17,11 @@
   ],
   "commands": "./commands",
   "skills": "./skills",
-  "agents": "./agents"
+  "agents": [
+    "./agents/api-documentation-specialist.md",
+    "./agents/backend-developer.md",
+    "./agents/documentation-specialist.md",
+    "./agents/frontend-developer.md",
+    "./agents/tech-lead-orchestrator.md"
+  ]
 }

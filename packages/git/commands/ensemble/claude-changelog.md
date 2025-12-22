@@ -1,5 +1,5 @@
 ---
-name: claude-changelog
+name: ensemble:claude-changelog
 description: Track Claude updates and new features directly from your development environment.
 Fetch, parse, and display changelogs with intelligent filtering and caching.
 
@@ -113,5 +113,5 @@ Results are cached for 24 hours to optimize performance.
 ## Usage
 
 ```
-/claude-changelog
+/ensemble:claude-changelog
 ```

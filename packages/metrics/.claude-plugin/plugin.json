@@ -1,6 +1,6 @@
 {
   "name": "ensemble-metrics",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Productivity metrics and analytics dashboard",
   "author": {
     "name": "Fortium Partners",
@@ -17,5 +17,7 @@
   ],
   "commands": "./commands",
   "skills": "./skills",
-  "agents": "./agents"
+  "agents": [
+    "./agents/manager-dashboard-agent.md"
+  ]
 }

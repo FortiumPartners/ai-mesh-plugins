@@ -1,5 +1,5 @@
 ---
-name: web-metrics-dashboard
+name: ensemble:web-metrics-dashboard
 description: Generate web performance metrics dashboard with Core Web Vitals
 ---
 <!-- DO NOT EDIT - Generated from web-metrics-dashboard.yaml -->
@@ -36,5 +36,5 @@ Lighthouse scores, bundle sizes, and performance recommendations for frontend ap
 ## Usage
 
 ```
-/web-metrics-dashboard
+/ensemble:web-metrics-dashboard
 ```

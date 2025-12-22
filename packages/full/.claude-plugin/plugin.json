@@ -1,6 +1,6 @@
 {
   "name": "ensemble-full",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Complete ensemble ecosystem (meta-package with all plugins)",
   "author": {
     "name": "Fortium Partners",
@@ -17,5 +17,34 @@
   ],
   "commands": "./commands",
   "skills": "./skills",
-  "agents": "./agents"
+  "agents": [
+    "./agents/agent-meta-engineer.md",
+    "./agents/api-documentation-specialist.md",
+    "./agents/backend-developer.md",
+    "./agents/build-orchestrator.md",
+    "./agents/code-reviewer.md",
+    "./agents/context-fetcher.md",
+    "./agents/deep-debugger.md",
+    "./agents/deployment-orchestrator.md",
+    "./agents/directory-monitor.md",
+    "./agents/documentation-specialist.md",
+    "./agents/ensemble-orchestrator.md",
+    "./agents/file-creator.md",
+    "./agents/frontend-developer.md",
+    "./agents/general-purpose.md",
+    "./agents/git-workflow.md",
+    "./agents/github-specialist.md",
+    "./agents/helm-chart-specialist.md",
+    "./agents/infrastructure-developer.md",
+    "./agents/infrastructure-orchestrator.md",
+    "./agents/manager-dashboard-agent.md",
+    "./agents/playwright-tester.md",
+    "./agents/postgresql-specialist.md",
+    "./agents/product-management-orchestrator.md",
+    "./agents/qa-orchestrator.md",
+    "./agents/release-agent.md",
+    "./agents/tech-lead-orchestrator.md",
+    "./agents/test-reader-agent.md",
+    "./agents/test-runner.md"
+  ]
 }

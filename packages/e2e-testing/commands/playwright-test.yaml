@@ -1,5 +1,5 @@
 metadata:
-  name: playwright-test
+  name: ensemble:playwright-test
   description: Automated E2E testing and error resolution using Playwright MCP integration
   version: 1.0.0
   lastUpdated: "2025-10-13"

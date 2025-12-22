@@ -1,6 +1,6 @@
 {
   "name": "ensemble-nestjs",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "NestJS backend framework skills for Claude Code AI-Augmented Development",
   "author": {
     "name": "Fortium Partners",
@@ -18,6 +18,5 @@
     "framework"
   ],
   "commands": "./commands",
-  "skills": "./skills",
-  "agents": "./agents"
+  "skills": "./skills"
 }

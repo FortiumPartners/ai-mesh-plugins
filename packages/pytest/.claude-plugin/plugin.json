@@ -1,6 +1,6 @@
 {
   "name": "ensemble-pytest",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Pytest testing framework integration - Execute and generate Python tests with fixtures, parametrization, and mocking support",
   "author": {
     "name": "Fortium Partners",
@@ -20,6 +20,5 @@
     "test-generation"
   ],
   "commands": "./commands",
-  "skills": "./skills",
-  "agents": "./agents"
+  "skills": "./skills"
 }

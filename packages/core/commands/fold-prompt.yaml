@@ -1,5 +1,5 @@
 metadata:
-  name: fold-prompt
+  name: ensemble:fold-prompt
   description: Advanced Claude environment optimization through intelligent project analysis and context management
   version: 2.0.0
   lastUpdated: "2025-10-13"

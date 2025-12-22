@@ -1,5 +1,5 @@
 ---
-name: sprint-status
+name: ensemble:sprint-status
 description: Generate current sprint status report with task completion and blockers
 ---
 <!-- DO NOT EDIT - Generated from sprint-status.yaml -->
@@ -36,5 +36,5 @@ blockers, team velocity, and projected completion date based on current TRD prog
 ## Usage
 
 ```
-/sprint-status
+/ensemble:sprint-status
 ```

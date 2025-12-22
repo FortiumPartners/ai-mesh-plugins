@@ -1,5 +1,5 @@
 ---
-name: create-trd
+name: ensemble:create-trd
 description: Take an existing PRD $ARGUMENTS and delegate to @tech-lead-orchestrator by the @ensemble-orchestrator
 
 ---
@@ -104,5 +104,5 @@ and implementation breakdown. All outputs are automatically saved to @docs/TRD/ 
 ## Usage
 
 ```
-/create-trd
+/ensemble:create-trd
 ```
